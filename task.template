@@ -1,0 +1,8 @@
+#include <bits/stdc++.h>
+
+class Task {
+public:
+    void solve(std::istream& in, std::ostream& out) {
+        using namespace std;
+    }
+};
