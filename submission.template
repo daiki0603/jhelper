@@ -1,0 +1,9 @@
+%Code%
+
+int main() {
+    std::ios::sync_with_stdio(false);
+    std::cin.tie(nullptr);
+    Task solver;
+    solver.solve(std::cin, std::cout);
+    return 0;
+}
