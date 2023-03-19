@@ -1,0 +1,105 @@
+#include "../tasks/EVladAndAPairOfNumbers.cpp"
+#include "../generator/generator.cpp"
+
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <vector>
+#include <cctype>
+#include <ctime>
+
+namespace jhelper {
+
+struct Test {
+	std::string input;
+	std::string output;
+	bool active;
+	bool has_output;
+};
+
+bool check(std::string expected, std::string actual) {
+	while(!expected.empty() && isspace(*--expected.end()))
+		expected.erase(--expected.end());
+	while(!actual.empty() && isspace(*--actual.end()))
+		actual.erase(--actual.end());
+	return expected == actual;
+}
+
+} // namespace jhelper
+
+int main() {
+    std::vector<jhelper::Test> tests = {
+	    {"6\n2\n5\n10\n6\n18\n36\n", "3 1\n-1\n13 7\n-1\n25 11\n50 22\n", true, true},
+    };
+    bool allOK = true;
+    int testID = 0;
+    std::cout << std::fixed;
+    double maxTime = 0.0;
+    for(const jhelper::Test& test: tests ) {
+	    std::cout << "Test #" << ++testID << '\n';
+	    std::cout << "Input: \n" << test.input << '\n';
+	    if (test.has_output) {
+	        std::cout << "Expected output: \n" << test.output << '\n';
+	    }
+	    else {
+	        std::cout << "Expected output: \n" << "N/A" << '\n';
+	    }
+	    if (test.active) {
+	        std::stringstream in(test.input);
+	        std::ostringstream out;
+	        std::clock_t start = std::clock();
+	        Task solver;
+	        solver.solve(in, out);
+	        std::clock_t finish = std::clock();
+	        double currentTime = double(finish - start) / CLOCKS_PER_SEC;
+	        maxTime = std::max(currentTime, maxTime);
+	        std::cout << "Actual output: \n" << out.str() << '\n';
+	        if (test.has_output) {
+		        bool result = jhelper::check(test.output, out.str());
+		        allOK = allOK && result;
+	            std::cout << "Result: " << (result ? "OK" : "Wrong answer") << '\n';
+	            std::cout << "Time: " << currentTime << '\n';
+	        }
+	    }
+	    else {
+	        std::cout << "SKIPPED\n";
+	    }
+	    std::cout << '\n';
+    }
+    for (int i = 0; i < kStressIterations; ++i) {
+        std::cout << "Test #" << ++testID << '\n';
+    	std::ostringstream generated_test;
+        generateTest(generated_test);
+        std::stringstream in(generated_test.str());
+        std::ostringstream out;
+        std::clock_t start = std::clock();
+        Task solver;
+        solver.solve(in, out);
+        std::clock_t finish = std::clock();
+        double currentTime = double(finish - start) / CLOCKS_PER_SEC;
+        maxTime = std::max(currentTime, maxTime);
+        std::stringstream naive_in(generated_test.str());
+        std::ostringstream naive_out;
+        naive_solver(naive_in, naive_out);
+        bool result = jhelper::check(naive_out.str(), out.str());
+        std::cout << "Result: " << (result ? "OK" : "Wrong answer") << '\n';
+        std::cout << "Time: " << currentTime << '\n';
+        if (!result) {
+            std::cout << '\n';
+            std::cout << "Input: \n" << generated_test.str() << '\n';
+            std::cout << "Expected output: \n" << naive_out.str() << '\n';
+            std::cout << "Actual output: \n" << out.str() << '\n';
+            allOK = false;
+        }
+        std::cout << '\n';
+    }
+    if(allOK) {
+    	std::cout << "All OK" << '\n';
+    }
+    else {
+    	std::cout << "Some cases failed" << '\n';
+    }
+    std::cout << "Maximal time: " << maxTime << "s." << '\n';
+    return 0;
+}
